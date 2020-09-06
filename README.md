@@ -8,7 +8,3 @@ google classroom
 ## App
 ![App](App.png)
 왼쪽 상자에 붙여넣기 후 버튼 클릭! 
-
-## 내용넣기
-
-class computer 의 생성자 Names 변수에 이름 리스트를 콤마(,)로 구분지어 넣어주세요 
