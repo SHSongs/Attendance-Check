@@ -4,10 +4,11 @@ using System.Linq;
 
 using System.Text.RegularExpressions;
 
-namespace TestProject1
+namespace WindowsFormsApp1
 {
 
-    public enum GradeEnum{
+    public enum GradeEnum
+    {
         Grade1,
         Grade2,
         Grade3,
@@ -19,26 +20,26 @@ namespace TestProject1
         Google,
         Ebs
     }
-    
+
     class Computer
     {
         private readonly string _originalData;
 
         private School _school;
-        
+
         private readonly SchoolService _schoolService;
         public Computer(string data)
         {
             _originalData = data;
             _school = new School();
             _schoolService = new SchoolService();
-            
-         
+
+
             int count = 0;
             foreach (var names in _schoolService.GetStudent(GradeEnum.Grade1))
             {
                 _school.Grades[0].Classes[count].SetStudents(new List<string>(names.Split('\t')));
-                count++;    
+                count++;
             }
 
             count = 0;
@@ -47,10 +48,10 @@ namespace TestProject1
                 _school.Grades[1].Classes[count].SetStudents(new List<string>(names.Split('\t')));
                 count++;
             }
-            
+
         }
 
-        public List<string> 기본처리(Platform platform)    
+        public List<string> 기본처리(Platform platform)
         {
             List<string> slitData = new List<string>(_originalData.Split('\n'));
 
@@ -66,8 +67,8 @@ namespace TestProject1
                 }
                 slitData = slitData.Where(x => x != "ㄴ ").ToList();
             }
-            
-            
+
+
             slitData = slitData.Where(x => x != "").ToList();
 
             Regex regex = new Regex(@"[0-9]{1}개");
@@ -76,7 +77,7 @@ namespace TestProject1
             {
                 slitData.RemoveAt(0);
             }
-            
+
             return slitData;
         }
 
@@ -88,10 +89,10 @@ namespace TestProject1
                 if (i % 2 == 1)
                 {
                     data[i] = "";
-                }    
+                }
             }
             data = data.Where(x => x != "").ToList();
-            
+
             return data;
 
         }
@@ -117,11 +118,11 @@ namespace TestProject1
                                 c -= 2;
                             else
                                 c -= 1;
-                        
+
                         }
                     }
                     data[i] = data[i].Substring(0, c);
-                
+
 
 
                     Regex r = new Regex("[0-9]");
@@ -135,14 +136,14 @@ namespace TestProject1
 
                     data[i] = data[i].Trim();
                 }
-                
+
             }
             else if (platform == Platform.Ebs)
             {
                 for (int i = 0; i < data.Count; i++)
                 {
                     Regex r = new Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}|[0-9]{4}.[0-9]{2}.[0-9]{2}");
-                    
+
                     if (r.IsMatch(data[i]))
                     {
                         data[i] = "";
@@ -153,7 +154,7 @@ namespace TestProject1
 
 
             }
-           
+
 
 
             return data;
@@ -162,17 +163,17 @@ namespace TestProject1
         public List<string> 이름지우기(List<string> data)
         {
             Regex r = new Regex("^[가-힣]{1}.{1}[가-힣]{1}$");
-            
-            
+
+
             for (int i = 0; i < data.Count; i++)
             {
                 if (r.IsMatch(data[i]))
                 {
                     data[i] = "";
-                }    
+                }
             }
             data = data.Where(x => x != "").ToList();
-            
+
             return data;
         }
 
@@ -181,7 +182,7 @@ namespace TestProject1
             for (int i = 0; i < data.Count; i++)
             {
                 Regex r = new Regex("[0-9]");
-                
+
                 bool bSkypassNoChk = r.IsMatch(data[i]);
 
                 if (bSkypassNoChk)
@@ -193,11 +194,11 @@ namespace TestProject1
                 data[i] = data[i].Substring(0, c);
 
                 data[i] = data[i].Trim();
-                
-                
+
+
             }
-            
-            
+
+
             return data;
         }
         public List<string> GetData(Platform platform)
@@ -205,7 +206,7 @@ namespace TestProject1
 
             if (platform == Platform.Google)
             {
-                return 날짜지우기(내용삭제(기본처리(platform)) , platform);
+                return 날짜지우기(내용삭제(기본처리(platform)), platform);
 
             }
             else
@@ -213,33 +214,115 @@ namespace TestProject1
                 return 내용에서_이름만살리기(이름지우기(날짜지우기(기본처리(platform), platform)));
             }
         }
-        
-        private List<string> FindName(List<Student> students, List<string> data)
+
+        private Result FindName(List<Student> students, List<string> datas, Platform platform)
         {
             List<string> 안한분 = new List<string>();
+
+          
             foreach (var t1 in students)
             {
-                var check = data.Any(t => t1.Name == t);
+                var check = datas.Any(t => t1.Name == t);
 
                 if (check == false)
                 {
                     안한분.Add(t1.Name);
                 }
             }
+
             
-            return 안한분;
-        }
-        
-        public List<string> 출첵_안한분_찾아내기(int grade, int room, Platform platform)
-        {
-            
-            List<string> data = GetData(platform);
-            List<Student> students = _school.Grades[grade].Classes[room].Students;
-            
-            List<string> 안한분 = FindName(students,data);
-            
-            return 안한분;
+
+            List<int> notfoundIdx = new List<int>();
+
+            for (int i = 0; i < datas.Count; i++)
+            {
+                var check = students.Any(s => s.Name == datas[i]);
+
+                if (check)
+                {
+                    datas[i] = "";
+                }
+            }
+
+            for(int i = 0; i < datas.Count; i++)
+            {
+                if (datas[i] != "")
+                {
+                    notfoundIdx.Add(i);
+                }
+            }
+
+            List<string> notdifinename = new List<string>();
+           
+            if(platform == Platform.Ebs)
+            {
+                List<string> note = 이름지우기(날짜지우기(기본처리(platform), platform));
+                
+                foreach(int idx in notfoundIdx)
+                {
+                    notdifinename.Add(note[idx]);
+                }
+            }
+
+
+
+            return new Result(안한분, notdifinename);
         }
 
+        public Result 출첵_안한분_찾아내기(int grade, int room, Platform platform, AttendanceMathod attendanceMathod)
+        {
+
+            List<string> data = GetData(platform);
+
+            List<Student> checkStudents = new List<Student>();
+
+
+            if (room == 10) // AllClass
+            {
+                foreach (Class c in _school.Grades[grade].Classes)
+                {
+                    checkStudents.AddRange(c.Students);
+                }
+
+            }
+            else
+            {
+
+                int harf = _school.Grades[grade].Classes[room].Students.Count / 2;
+                int end = _school.Grades[grade].Classes[room].Students.Count;
+
+                switch (attendanceMathod)
+                {
+                    case AttendanceMathod.all:
+                        checkStudents = _school.Grades[grade].Classes[room].Students;
+                        break;
+                    case AttendanceMathod.front:
+                        checkStudents = _school.Grades[grade].Classes[room].Students.GetRange(0, harf);
+                        break;
+                    case AttendanceMathod.back:
+                        checkStudents = _school.Grades[grade].Classes[room].Students.GetRange(harf, end - harf);
+                        break;
+                }
+            }
+
+
+            Result result = FindName(checkStudents, data, platform);
+
+
+            return result;
+        }
+
+    }
+
+    public class Result
+    {
+        public List<string> 안한분;
+        public List<string> 미분류;
+
+        public Result(List<string> 안한분, List<string> note)
+        {
+            this.안한분 = 안한분;
+            this.미분류 = note;
+        }
     }
 }
