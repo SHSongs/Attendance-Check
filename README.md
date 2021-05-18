@@ -6,7 +6,7 @@ google classroom 댓글 출석확인을 빠르게 할 수 있는 App 입니다.
 
 
 ## How to use
-[code](/Attendance-Check/client/WindowsFormsApp1/SchoolService.cs)  
+[code](/client/WindowsFormsApp1/SchoolService.cs)  
 
 Excel을 이용해 학생 이름을 한 행에 넣고 복사해서 변수에 맞게 집어 넣습니다. class00str 은 1학년 1반 입니다.  
 
