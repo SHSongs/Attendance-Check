@@ -38,7 +38,7 @@ App을 실행한 후 왼쪽 상자에 붙여넣기 후 버튼 클릭!
 ### 처리 과정
 
 1. 인풋 데이터를 분석하기 좋게 가공합니다.
-![Input data process](img/InputDataProcess.png)  
+<img src="img/InputDataProcess.png" height="400">  
 
 2. 원하는 학년, 반의 Student를 추출합니다.
 
