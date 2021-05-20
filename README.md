@@ -26,9 +26,8 @@ var class13Str = "김김김    가가가  나나나";
 ```
 ---
 구글 클래스룸 댓글을 복사합니다. ('수업 댓글 **개'는 같이 복사되어도 상관없습니다)  
-![Input data](img/InputData.png)  
+<img src="img/InputData.png" height="400"><img src="img/App.png" height="400">  
 
-![App](img/App.png)  
 App을 실행한 후 왼쪽 상자에 붙여넣기 후 버튼 클릭!   
 
 # 
