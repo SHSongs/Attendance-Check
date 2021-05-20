@@ -33,7 +33,7 @@ App을 실행한 후 왼쪽 상자에 붙여넣기 후 버튼 클릭!
 
 # 
 ## Architecture
-![SchoolDiagram](img/SchoolDiagram.jpg)  
+<img src="img/SchoolDiagram.jpg" height="400">  
 
 ### 처리 과정
 
