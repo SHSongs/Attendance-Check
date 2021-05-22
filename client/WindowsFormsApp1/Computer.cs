@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using System.Text.RegularExpressions;
 
-namespace WindowsFormsApp1
+namespace AttendanceCheck
 {
-
     public enum GradeEnum
     {
         Grade1,
@@ -25,33 +23,16 @@ namespace WindowsFormsApp1
     {
         private readonly string _originalData;
 
-        private School _school;
-
-        private readonly SchoolService _schoolService;
+        private SchoolService schoolService;
+        
         public Computer(string data)
         {
             _originalData = data;
-            _school = new School();
-            _schoolService = new SchoolService();
-
-
-            int count = 0;
-            foreach (var names in _schoolService.GetStudent(GradeEnum.Grade1))
-            {
-                _school.Grades[0].Classes[count].SetStudents(new List<string>(names.Split('\t')));
-                count++;
-            }
-
-            count = 0;
-            foreach (var names in _schoolService.GetStudent(GradeEnum.Grade2))
-            {
-                _school.Grades[1].Classes[count].SetStudents(new List<string>(names.Split('\t')));
-                count++;
-            }
-
+            schoolService = new SchoolService();
+            schoolService.SetupSchool();
         }
 
-        public List<string> 기본처리(Platform platform)
+        public List<string> RemoveBlank(Platform platform)
         {
             List<string> slitData = new List<string>(_originalData.Split('\n'));
 
@@ -65,6 +46,7 @@ namespace WindowsFormsApp1
                 {
                     slitData[slitData.Count - 1] = "";
                 }
+
                 slitData = slitData.Where(x => x != "ㄴ ").ToList();
             }
 
@@ -81,9 +63,8 @@ namespace WindowsFormsApp1
             return slitData;
         }
 
-        public List<string> 내용삭제(List<string> data)
+        public List<string> RemoveNote(List<string> data)
         {
-
             for (int i = 0; i < data.Count; i++)
             {
                 if (i % 2 == 1)
@@ -91,13 +72,13 @@ namespace WindowsFormsApp1
                     data[i] = "";
                 }
             }
+
             data = data.Where(x => x != "").ToList();
 
             return data;
-
         }
 
-        public List<string> 날짜지우기(List<string> data, Platform platform)
+        public List<string> RemoveDate(List<string> data, Platform platform)
         {
             if (platform == Platform.Google)
             {
@@ -118,11 +99,10 @@ namespace WindowsFormsApp1
                                 c -= 2;
                             else
                                 c -= 1;
-
                         }
                     }
-                    data[i] = data[i].Substring(0, c);
 
+                    data[i] = data[i].Substring(0, c);
 
 
                     Regex r = new Regex("[0-9]");
@@ -136,7 +116,6 @@ namespace WindowsFormsApp1
 
                     data[i] = data[i].Trim();
                 }
-
             }
             else if (platform == Platform.Ebs)
             {
@@ -147,14 +126,11 @@ namespace WindowsFormsApp1
                     if (r.IsMatch(data[i]))
                     {
                         data[i] = "";
-
                     }
                 }
+
                 data = data.Where(x => x != "").ToList();
-
-
             }
-
 
 
             return data;
@@ -172,6 +148,7 @@ namespace WindowsFormsApp1
                     data[i] = "";
                 }
             }
+
             data = data.Where(x => x != "").ToList();
 
             return data;
@@ -194,32 +171,31 @@ namespace WindowsFormsApp1
                 data[i] = data[i].Substring(0, c);
 
                 data[i] = data[i].Trim();
-
-
             }
 
 
             return data;
         }
+
         public List<string> GetData(Platform platform)
         {
-
             if (platform == Platform.Google)
             {
-                return 날짜지우기(내용삭제(기본처리(platform)), platform);
-
+                return RemoveDate(RemoveNote(RemoveBlank(platform)), platform);
             }
-            else
+            else if (platform == Platform.Ebs)
             {
-                return 내용에서_이름만살리기(이름지우기(날짜지우기(기본처리(platform), platform)));
+                return 내용에서_이름만살리기(이름지우기(RemoveDate(RemoveBlank(platform), platform)));
             }
+
+            return null;
         }
 
-        private Result FindName(List<Student> students, List<string> datas, Platform platform)
+        private Result Analyze(List<Student> students, List<string> datas, Platform platform)
         {
             List<string> 안한분 = new List<string>();
 
-          
+
             foreach (var t1 in students)
             {
                 var check = datas.Any(t => t1.Name == t);
@@ -230,7 +206,6 @@ namespace WindowsFormsApp1
                 }
             }
 
-            
 
             List<int> notfoundIdx = new List<int>();
 
@@ -244,7 +219,7 @@ namespace WindowsFormsApp1
                 }
             }
 
-            for(int i = 0; i < datas.Count; i++)
+            for (int i = 0; i < datas.Count; i++)
             {
                 if (datas[i] != "")
                 {
@@ -253,65 +228,31 @@ namespace WindowsFormsApp1
             }
 
             List<string> notdifinename = new List<string>();
-           
-            if(platform == Platform.Ebs)
+
+            if (platform == Platform.Ebs)
             {
-                List<string> note = 이름지우기(날짜지우기(기본처리(platform), platform));
-                
-                foreach(int idx in notfoundIdx)
+                List<string> note = 이름지우기(RemoveDate(RemoveBlank(platform), platform));
+
+                foreach (int idx in notfoundIdx)
                 {
                     notdifinename.Add(note[idx]);
                 }
             }
 
 
-
             return new Result(안한분, notdifinename);
         }
 
-        public Result 출첵_안한분_찾아내기(int grade, int room, Platform platform, AttendanceMathod attendanceMathod)
+        public Result FindPeopleDidNotCheckAttendance(int grade, int room, Platform platform, AttendanceMathod attendanceMathod)
         {
-
             List<string> data = GetData(platform);
 
-            List<Student> checkStudents = new List<Student>();
+            List<Student> checkStudents = schoolService.ReturnStudent(grade, room, attendanceMathod);
 
-
-            if (room == 10) // AllClass
-            {
-                foreach (Class c in _school.Grades[grade].Classes)
-                {
-                    checkStudents.AddRange(c.Students);
-                }
-
-            }
-            else
-            {
-
-                int harf = _school.Grades[grade].Classes[room].Students.Count / 2;
-                int end = _school.Grades[grade].Classes[room].Students.Count;
-
-                switch (attendanceMathod)
-                {
-                    case AttendanceMathod.all:
-                        checkStudents = _school.Grades[grade].Classes[room].Students;
-                        break;
-                    case AttendanceMathod.front:
-                        checkStudents = _school.Grades[grade].Classes[room].Students.GetRange(0, harf);
-                        break;
-                    case AttendanceMathod.back:
-                        checkStudents = _school.Grades[grade].Classes[room].Students.GetRange(harf, end - harf);
-                        break;
-                }
-            }
-
-
-            Result result = FindName(checkStudents, data, platform);
-
+            Result result = Analyze(checkStudents, data, platform);
 
             return result;
         }
-
     }
 
     public class Result

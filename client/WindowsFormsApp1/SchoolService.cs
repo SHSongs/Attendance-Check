@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 
-namespace WindowsFormsApp1
+namespace AttendanceCheck
 {
     class SchoolService
     {
-        private List<string> grade0Str;
-        private List<string> grade1Str;
+        private readonly List<string> _grade0Str;
+        private readonly List<string> _grade1Str;
+        private readonly School _school;
 
         public SchoolService()
         {
@@ -19,28 +20,75 @@ namespace WindowsFormsApp1
             var class12Str = "";
             var class13Str = "";
 
-            grade0Str = new List<string>() { class00Str, class01Str, class02Str, class03Str };
-            grade1Str = new List<string>() { class10Str, class11Str, class12Str, class13Str };
+            _grade0Str = new List<string>() {class00Str, class01Str, class02Str, class03Str};
+            _grade1Str = new List<string>() {class10Str, class11Str, class12Str, class13Str};
+
+            _school = new School();
+        }
+
+        public void SetupSchool()
+        {
+            for (GradeEnum i = 0; i <= GradeEnum.Grade2; i++)
+            {
+                int count = 0;
+                foreach (var names in GetStudent(i))
+                {
+                    _school.Grades[(int) i].Classes[count].SetStudents(new List<string>(names.Split('\t')));
+                    count++;
+                }
+            }
         }
 
         public List<string> GetStudent(GradeEnum gradeEnum)
         {
             if (gradeEnum == GradeEnum.Grade1)
             {
-                return grade0Str;
+                return _grade0Str;
             }
             else if (gradeEnum == GradeEnum.Grade2)
             {
-                return grade1Str;
+                return _grade1Str;
             }
             else if (gradeEnum == GradeEnum.Grade3)
             {
                 return null;
             }
+
+            return null;
+        }
+
+        public List<Student> ReturnStudent(int grade, int room, AttendanceMathod attendanceMathod)
+        {
+            List<Student> checkStudents = new List<Student>();
+
+
+            if (room == 10) // AllClass
+            {
+                foreach (Class c in _school.Grades[grade].Classes)
+                {
+                    checkStudents.AddRange(c.Students);
+                }
+            }
             else
             {
-                return null;
+                int harf = _school.Grades[grade].Classes[room].Students.Count / 2;
+                int end = _school.Grades[grade].Classes[room].Students.Count;
+
+                switch (attendanceMathod)
+                {
+                    case AttendanceMathod.all:
+                        checkStudents = _school.Grades[grade].Classes[room].Students;
+                        break;
+                    case AttendanceMathod.front:
+                        checkStudents = _school.Grades[grade].Classes[room].Students.GetRange(0, harf);
+                        break;
+                    case AttendanceMathod.back:
+                        checkStudents = _school.Grades[grade].Classes[room].Students.GetRange(harf, end - harf);
+                        break;
+                }
             }
+
+            return checkStudents;
         }
     }
 
@@ -71,12 +119,12 @@ namespace WindowsFormsApp1
                 Classes.Add(new Class());
             }
         }
-
     }
 
     class Class
     {
         public List<Student> Students;
+
         public Class()
         {
             Students = new List<Student>();
@@ -107,6 +155,4 @@ namespace WindowsFormsApp1
         front,
         back
     }
-
-
 }
