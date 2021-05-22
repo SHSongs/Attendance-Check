@@ -1,4 +1,4 @@
-﻿namespace WindowsFormsApp1
+﻿namespace AttendanceCheck
 {
     partial class Form1
     {

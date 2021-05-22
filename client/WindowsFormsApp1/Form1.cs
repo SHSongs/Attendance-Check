@@ -12,7 +12,7 @@ using System.Windows.Forms;
 using System.Text.RegularExpressions;
 
 
-namespace WindowsFormsApp1
+namespace AttendanceCheck
 {
   
 
@@ -46,7 +46,7 @@ namespace WindowsFormsApp1
             Platform platform = ChoicePlatform();
 
 
-            Result result = computer.출첵_안한분_찾아내기(gradeNum,roomNum, platform, stu);
+            Result result = computer.FindPeopleDidNotCheckAttendance(gradeNum,roomNum, platform, stu);
 
             richTextBox1.Text = "";
             foreach(string s in result.안한분)
